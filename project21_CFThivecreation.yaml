@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: CloudFormation template for creating an EMR cluster with Spark
+Parameters:
+  AdditionalMasterSecurityGroups:
+    Default: sg-0eefe6f15261e0232
+    Type: CommaDelimitedList
+  AdditionalSlaveSecurityGroups:
+    Default: sg-0590b5f0cc6651ba7
+    Type: CommaDelimitedList
+  ClusterName:
+    Default: projectdemo
+    Type: String
+  CoreInstanceCount:
+    Default: 1
+    Type: Number
+  CoreInstanceType:
+    Default: m5.xlarge
+    Type: String
+  LogS3Bucket:
+    Default: yelp1project
+    Type: String
+  NotebookS3Bucket:
+    Default: yelp1project
+    Type: String
+Resources:
+  EmrCluster:
+    Properties:
+      Applications:
+        - Name: Spark
+        - Name: Hive
+        - Name: JupyterHub
+      Configurations:
+        - Classification: spark
+          ConfigurationProperties:
+            maximizeResourceAllocation: 'true'
+      Instances:
+        AdditionalMasterSecurityGroups: !Ref AdditionalMasterSecurityGroups
+        AdditionalSlaveSecurityGroups: !Ref AdditionalSlaveSecurityGroups
+        CoreInstanceGroup:
+          InstanceCount: !Ref CoreInstanceCount
+          InstanceType: !Ref CoreInstanceType
+          Market: ON_DEMAND
+          Name: Core
+        Ec2KeyName: Avengers
+        MasterInstanceGroup:
+          InstanceCount: 1
+          InstanceType: m5.xlarge
+          Market: ON_DEMAND
+          Name: Master
+      JobFlowRole: EMR_EC2_DefaultRole
+      LogUri: !Join 
+        - /
+        - - 's3:/'
+          - !Ref LogS3Bucket
+          - logs
+          - !Ref ClusterName
+      Name: !Ref ClusterName
+      ReleaseLabel: emr-5.32.0
+      ServiceRole: EMR_DefaultRole
+      Steps:
+        - Name: cftdemo
+          ActionOnFailure: CONTINUE
+          HadoopJarStep:
+            Jar: command-runner.jar
+            Args:
+              - spark-submit
+              - 's3://project21-vita/code/eda_sql_project21.py'
+      Tags:
+        - Key: Service
+          Value: EMR
+        - Key: Cluster
+          Value: !Ref ClusterName
+    Type: 'AWS::EMR::Cluster'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 3f5d519a-9928-4af2-9ca6-0978f58215ee
+Metadata:
+  'AWS::CloudFormation::Designer':
+    3f5d519a-9928-4af2-9ca6-0978f58215ee:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 90
+      z: 1
+      embeds: []
