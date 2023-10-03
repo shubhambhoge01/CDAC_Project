@@ -74,7 +74,6 @@ if __name__ == "__main__":
 
     query_business.write.saveAsTable("yelp.business_restaurant_table")
 
-
     ### Reading Review
 
     review_schema = StructType([
